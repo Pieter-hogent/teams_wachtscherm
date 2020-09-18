@@ -8,13 +8,13 @@ body {
 }
 
 body.dark-background:after {
-  content: url(../../img/logo_white.png);
+  content: url(../img/logo_white.png);
   position: fixed;
   bottom: 25px;
   right: 25px;
 }
 body:not(.dark-background):after {
-  content: url(../../img/logo_black.png);
+  content: url(../img/logo_black.png);
   position: fixed;
   bottom: 25px;
   right: 25px;
