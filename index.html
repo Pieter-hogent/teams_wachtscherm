@@ -106,28 +106,22 @@
 
         document.getElementById('record').innerHTML =
           state.record === 'on'
-            ? ` <li style="margin: -10px 0">
-                  <img
+            ? `<img
                     src="img/record.png"
                     class="icon"
                   />
-                  ik neem de sessie op zodat je later kan herbekijken indien je wenst
-                </li>`
+                  ik neem de sessie op zodat je later kan herbekijken indien je wenst`
             : state.record === 'off'
-            ? ` <li style="margin: -10px 0">
-                  <img
+            ? `<img
                     src="img/record_mute.png"
                     class="icon"
                   />
-                 de sessie wordt niet opgenomen, opletten dus!
-                </li>`
-            : ` <li style="margin: -10px 0">
-                  <img
+                 de sessie wordt niet opgenomen, opletten dus!`
+            : `<img
                     src="img/record.png"
                     class="icon"
                   />
-                  er zal een opname beschikbaar zijn van deze les, gemaakt op een ander moment deze week
-                </li>`;
+                  er zal een opname beschikbaar zijn van deze les, gemaakt op een ander moment deze week`;
 
         if (state.record === 'hidden') {
           document.getElementById('record').style.display = 'none';
