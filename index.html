@@ -1,0 +1,395 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+
+    <title>keuzetraject programmeren</title>
+
+    <link
+      href="https://fonts.googleapis.com/css?family=Montserrat"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="css/wachtscherm.css" />
+    <script>
+      // globals
+      let state = JSON.parse(localStorage.getItem('wachtscherm_state')) ?? {
+        startHour: 14,
+        startMinute: 30,
+        endHour: 15,
+        endMinute: 0,
+        courseTitle: 'Artificiële Intelligentie',
+        lecturer: 'Pieter Van Der Helst',
+        microphone: 'off', // on | off | hidden
+        chat: 'on', // on | off | hidden
+        record: 'on', // on | off | other | hidden
+      };
+      let countDownInterval = null;
+    </script>
+
+    <script>
+      // helper functions
+      const timeString = (hour, minute) =>
+        `${hour.toString().padStart(2, 0)}:${minute.toString().padStart(2, 0)}`;
+
+      const createCountdownInterval = (countDownDate) => () => {
+        const distance = countDownDate - new Date().getTime();
+
+        if (distance < 1000) {
+          clearInterval(countDownInterval);
+          document.getElementById('countdown').innerHTML = '';
+        } else {
+          const hours = Math.floor(distance / (1000 * 60 * 60));
+          const minutes = Math.floor(
+            (distance % (1000 * 60 * 60)) / (1000 * 60)
+          );
+          const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+          let tijdStr = ' (we starten binnen ';
+          tijdStr += hours ? `${hours}u` : '';
+          tijdStr += minutes ? `${minutes}m` : '';
+          tijdStr += `${seconds}s )`;
+
+          document.getElementById('countdown').innerHTML = tijdStr;
+        }
+      };
+
+      // refresh UI - refresh form, based on state
+      const updateUI = () => {
+        document.getElementById('starthour').innerHTML = `${timeString(
+          state.startHour,
+          state.startMinute
+        )} - ${timeString(state.endHour, state.endMinute)}`;
+
+        document.getElementById('title').innerHTML = state.courseTitle;
+        document.getElementById('lecturer').innerHTML = state.lecturer;
+        document.getElementById('microphone').innerHTML =
+          state.microphone === 'off'
+            ? `<img
+                    src="img/mute_microphone.png"
+                    class="icon"
+                  />
+                  <span>zet je camera en microfoon uit bij de start a.u.b.</span>`
+            : `<img
+                    src="img/microphone.png"
+                    class="icon"
+                  />
+                  <span>zet je camera en microfoon aan a.u.b., tegen een zwart scherm praten is niet leuk</span>`;
+
+        if (state.microphone === 'hidden') {
+          document.getElementById('microphone').style.display = 'none';
+        } else {
+          document.getElementById('microphone').style.display = '';
+        }
+
+        document.getElementById('chat').innerHTML =
+          state.chat === 'off'
+            ? `<img
+                    src="img/chat_mute.png"
+                    class="icon"
+                  />
+                  de chat wordt niet actief opgevolgd`
+            : `<img
+                    src="img/chat.png"
+                    class="icon"
+                  />
+                  vragen kan je in de chat stellen`;
+
+        if (state.chat === 'hidden') {
+          document.getElementById('chat').style.display = 'none';
+        } else {
+          document.getElementById('chat').style.display = '';
+        }
+
+        document.getElementById('record').innerHTML =
+          state.record === 'on'
+            ? ` <li style="margin: -10px 0">
+                  <img
+                    src="img/record.png"
+                    class="icon"
+                  />
+                  ik neem de sessie op zodat je later kan herbekijken indien je wenst
+                </li>`
+            : state.record === 'off'
+            ? ` <li style="margin: -10px 0">
+                  <img
+                    src="img/record_mute.png"
+                    class="icon"
+                  />
+                 de sessie wordt niet opgenomen, opletten dus!
+                </li>`
+            : ` <li style="margin: -10px 0">
+                  <img
+                    src="img/record.png"
+                    class="icon"
+                  />
+                  er zal een opname beschikbaar zijn van deze les, gemaakt op een ander moment deze week
+                </li>`;
+
+        if (state.record === 'hidden') {
+          document.getElementById('record').style.display = 'none';
+        } else {
+          document.getElementById('record').style.display = '';
+        }
+      };
+
+      const updateForm = () => {
+        document.getElementById('title_input').value = state.courseTitle;
+        document.getElementById('lecturer_input').value = state.lecturer;
+        document.getElementById('start_input').value = timeString(
+          state.startHour,
+          state.startMinute
+        );
+        document.getElementById('end_input').value = timeString(
+          state.endHour,
+          state.endMinute
+        );
+
+        const microphoneStateInput = {
+          on: 'microphone_on',
+          off: 'microphone_off',
+          hidden: 'microphone_hidden',
+        };
+        document.getElementById(
+          microphoneStateInput[state.microphone]
+        ).checked = true;
+
+        const chatStateInput = {
+          on: 'chat_on',
+          off: 'chat_off',
+          hidden: 'chat_hidden',
+        };
+        document.getElementById(chatStateInput[state.chat]).checked = true;
+
+        const recordStateInput = {
+          on: 'record_on',
+          off: 'record_off',
+          other: 'record_other',
+          hidden: 'record_hidden',
+        };
+        document.getElementById(recordStateInput[state.record]).checked = true;
+      };
+
+      countDownInterval = setInterval(
+        createCountdownInterval(
+          new Date().setHours(state.startHour, state.startMinute)
+        ),
+        1000
+      );
+    </script>
+  </head>
+
+  <body class="dark-background">
+    <div
+      id="editbutton"
+      onmouseover="this.style.color='white';"
+      onmouseout="this.style.color='black';"
+    >
+      edit>
+    </div>
+    <div id="editform" style="display: none">
+      <form>
+        <button type="button" id="closeFormButton" style="float: right">
+          close
+        </button>
+        <input type="text" id="title_input" /><br />
+        <input type="text" id="lecturer_input" /><br />
+        <input type="time" id="start_input" />
+        <input type="time" id="end_input" /><br />
+        <span>microphone</span>
+        <span>
+          <input
+            type="radio"
+            name="microphone_input"
+            id="microphone_on"
+            value="on"
+          /><label for="microphone_on">on</label>
+          <input
+            type="radio"
+            name="microphone_input"
+            id="microphone_off"
+            value="off"
+          /><label for="microphone_off">off</label>
+          <input
+            type="radio"
+            name="microphone_input"
+            id="microphone_hidden"
+            value="hidden"
+          /><label for="microphone_hidden">hidden</label>
+        </span>
+        <br />
+        <span>chat</span>
+        <span>
+          <input type="radio" name="chat_input" id="chat_on" value="on" /><label
+            for="chat_on"
+            >on</label
+          >
+          <input
+            type="radio"
+            name="chat_input"
+            id="chat_off"
+            value="off"
+          /><label for="chat_off">off</label>
+          <input
+            type="radio"
+            name="chat_input"
+            id="chat_hidden"
+            value="hidden"
+          /><label for="chat_hidden">hidden</label>
+        </span>
+        <!-- recording -->
+        <br />
+        <span>record</span>
+        <span>
+          <input
+            type="radio"
+            name="record_input"
+            id="record_on"
+            value="on"
+          /><label for="record_on">on</label>
+          <input
+            type="radio"
+            name="record_input"
+            id="record_off"
+            value="off"
+          /><label for="record_off">off</label>
+          <input
+            type="radio"
+            name="record_input"
+            id="record_other"
+            value="other"
+          /><label for="record_other">other</label>
+          <input
+            type="radio"
+            name="record_input"
+            id="record_hidden"
+            value="hidden"
+          /><label for="record_hidden">hidden</label>
+        </span>
+      </form>
+    </div>
+
+    <div>
+      <span>
+        <h2 id="title">TITLE (SHOULD HAVE BEEN REPLACED)</h2>
+        <h3 id="lecturer">LECTURER (SHOULD HAVE BEEN REPLACED)</h3>
+      </span>
+      <span id="bottomlist">
+        <ul>
+          <li>
+            <img src="img/clock_icon.png" class="icon" />
+            <span id="starthour"> 99u99 - 99u99 </span>
+            <span id="countdown" style="font-size: smaller"></span>
+          </li>
+          <li id="microphone">MICROPHONE (SHOULD BE REPLACED)</li>
+          <li id="chat">CHAT (SHOULD BE REPLACED)</li>
+          <li id="record">RECORD (SHOULD BE REPLACED)</li>
+        </ul>
+      </span>
+    </div>
+
+    <script>
+      // redraw with start-state
+      updateUI();
+
+      // event handlers
+
+      // show edit form
+      document.getElementById('editbutton').onclick = () => {
+        const editForm = document.getElementById('editform');
+        editForm.style.display = '';
+        document.getElementById('editbutton').style.display = 'none';
+        editForm.classList.add('editform');
+        updateForm();
+        document.getElementById('title_input').focus();
+        document.getElementById('title_input').select();
+      };
+
+      // hide it again
+      document.getElementById('closeFormButton').onclick = () => {
+        const editForm = document.getElementById('editform');
+        editForm.style.display = 'none';
+        document.getElementById('editbutton').style.display = '';
+        editForm.classList.remove('editform');
+        localStorage.setItem('wachtscherm_state', JSON.stringify(state));
+      };
+      // title - lecturer
+      document.getElementById('title_input').oninput = (event) => {
+        state = { ...state, courseTitle: event.target.value };
+        updateUI();
+      };
+      document.getElementById('lecturer_input').oninput = (event) => {
+        state = { ...state, lecturer: event.target.value };
+        updateUI();
+      };
+      // start - end hour
+      document.getElementById('start_input').oninput = (event) => {
+        state = {
+          ...state,
+          startHour: event.target.valueAsDate.getUTCHours(),
+          startMinute: event.target.valueAsDate.getUTCMinutes(),
+        };
+
+        clearInterval(countDownInterval);
+        countDownInterval = setInterval(
+          createCountdownInterval(
+            new Date().setHours(state.startHour, state.startMinute),
+            1000
+          )
+        );
+        updateUI();
+      };
+      document.getElementById('end_input').oninput = (event) => {
+        state = {
+          ...state,
+          endHour: event.target.valueAsDate.getUTCHours(),
+          endMinute: event.target.valueAsDate.getUTCMinutes(),
+        };
+        updateUI();
+      };
+      // microphone
+      document.querySelectorAll('input[name="microphone_input"').forEach(
+        (input) =>
+          (input.oninput = (event) => {
+            state = {
+              ...state,
+              microphone: document.querySelector(
+                'input[name="microphone_input"]:checked'
+              ).value,
+            };
+            updateUI();
+          })
+      );
+
+      // chat
+      document.querySelectorAll('input[name="chat_input"').forEach(
+        (input) =>
+          (input.oninput = (event) => {
+            state = {
+              ...state,
+              chat: document.querySelector('input[name="chat_input"]:checked')
+                .value,
+            };
+            updateUI();
+          })
+      );
+
+      // record
+      document.querySelectorAll('input[name="record_input"').forEach(
+        (input) =>
+          (input.oninput = (event) => {
+            state = {
+              ...state,
+              record: document.querySelector(
+                'input[name="record_input"]:checked'
+              ).value,
+            };
+            updateUI();
+          })
+      );
+    </script>
+  </body>
+</html>
