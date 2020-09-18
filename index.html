@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="css/wachtscherm.css" />
     <script>
       // globals
-      let state = JSON.parse(localStorage.getItem('wachtscherm_state')) ?? {
+      let state = {
         startHour: 14,
         startMinute: 30,
         endHour: 15,
@@ -26,8 +26,49 @@
         microphone: 'off', // on | off | hidden
         chat: 'on', // on | off | hidden
         record: 'on', // on | off | other | hidden
+        language: 'en', // nl | en
+      };
+      // will overwrite any keys already in the local storage (but new ones correctly get a default)
+      state = {
+        ...state,
+        ...JSON.parse(localStorage.getItem('wachtscherm_state')),
       };
       let countDownInterval = null;
+      let text = {
+        nl: {
+          countdownPrefix: 'we starten binnen',
+          countdownH: 'u',
+          countdownM: 'm',
+          countdownS: 's',
+          microOff: 'zet je camera en microfoon uit bij de start a.u.b.',
+          microOn:
+            'zet je camera en microfoon aan a.u.b., tegen een zwart scherm praten is niet leuk',
+          chatOff: 'de chat wordt niet actief opgevolgd',
+          chatOn: 'vragen kan je in de chat stellen',
+          recordOff: 'de sessie wordt niet opgenomen, opletten dus!',
+          recordOn:
+            'ik neem de sessie op zodat je later kan herbekijken indien je wenst',
+          recordOther:
+            'er zal een opname beschikbaar zijn van deze les, gemaakt op een ander moment deze week',
+        },
+        en: {
+          countdownPrefix: "we'll start in",
+          countdownH: 'h',
+          countdownM: 'm',
+          countdownS: 's',
+          microOff: 'turn off your microphone and camera please',
+          microOn:
+            "turn on your microphone and camera please, I don't like talking to an empty screen",
+          chatOff: 'the chat is not being monitored',
+          chatOn: 'use the chat to ask any questions you might have',
+          recordOff: 'the session is not being recorded, pay attention!',
+          recordOn:
+            'the session is being recorded so you can watch it again later',
+          recordOther:
+            'a recording of this class will be made available, recorded at a different time this week',
+        },
+      };
+      let lang = state.language;
     </script>
 
     <script>
@@ -48,10 +89,10 @@
           );
           const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-          let tijdStr = ' (we starten binnen ';
-          tijdStr += hours ? `${hours}u` : '';
-          tijdStr += minutes ? `${minutes}m` : '';
-          tijdStr += `${seconds}s )`;
+          let tijdStr = ` (${text[lang]['countdownPrefix']} `;
+          tijdStr += hours ? `${hours}${text[lang]['countdownH']}` : '';
+          tijdStr += minutes ? `${minutes}${text[lang]['countdownM']}` : '';
+          tijdStr += `${seconds}${text[lang]['countdownS']} )`;
 
           document.getElementById('countdown').innerHTML = tijdStr;
         }
@@ -72,12 +113,12 @@
                     src="img/mute_microphone.png"
                     class="icon"
                   />
-                  <span>zet je camera en microfoon uit bij de start a.u.b.</span>`
+                  <span>${text[lang]['microOff']}</span>`
             : `<img
                     src="img/microphone.png"
                     class="icon"
                   />
-                  <span>zet je camera en microfoon aan a.u.b., tegen een zwart scherm praten is niet leuk</span>`;
+                  <span>${text[lang]['microOn']}</span>`;
 
         if (state.microphone === 'hidden') {
           document.getElementById('microphone').style.display = 'none';
@@ -91,12 +132,12 @@
                     src="img/chat_mute.png"
                     class="icon"
                   />
-                  de chat wordt niet actief opgevolgd`
+                  ${text[lang]['chatOff']}`
             : `<img
                     src="img/chat.png"
                     class="icon"
                   />
-                  vragen kan je in de chat stellen`;
+                  ${text[lang]['chatOn']}`;
 
         if (state.chat === 'hidden') {
           document.getElementById('chat').style.display = 'none';
@@ -110,18 +151,18 @@
                     src="img/record.png"
                     class="icon"
                   />
-                  ik neem de sessie op zodat je later kan herbekijken indien je wenst`
+                  ${text[lang]['recordOn']}`
             : state.record === 'off'
             ? `<img
                     src="img/record_mute.png"
                     class="icon"
                   />
-                 de sessie wordt niet opgenomen, opletten dus!`
+                  ${text[lang]['recordOff']}`
             : `<img
                     src="img/record.png"
                     class="icon"
                   />
-                  er zal een opname beschikbaar zijn van deze les, gemaakt op een ander moment deze week`;
+                  ${text[lang]['recordOther']}`;
 
         if (state.record === 'hidden') {
           document.getElementById('record').style.display = 'none';
@@ -165,6 +206,14 @@
           hidden: 'record_hidden',
         };
         document.getElementById(recordStateInput[state.record]).checked = true;
+
+        const languageStateInput = {
+          nl: 'language_nl',
+          en: 'language_en',
+        };
+        document.getElementById(
+          languageStateInput[state.language]
+        ).checked = true;
       };
 
       countDownInterval = setInterval(
@@ -262,6 +311,21 @@
             id="record_hidden"
             value="hidden"
           /><label for="record_hidden">hidden</label>
+        </span>
+        <br />
+        <span>
+          <input
+            type="radio"
+            name="language_input"
+            id="language_nl"
+            value="nl"
+          /><label for="language_nl">nederlands</label>
+          <input
+            type="radio"
+            name="language_input"
+            id="language_en"
+            value="en"
+          /><label for="language_en">english</label>
         </span>
       </form>
     </div>
@@ -381,6 +445,20 @@
                 'input[name="record_input"]:checked'
               ).value,
             };
+            updateUI();
+          })
+      );
+
+      document.querySelectorAll('input[name="language_input"').forEach(
+        (input) =>
+          (input.oninput = (event) => {
+            state = {
+              ...state,
+              language: document.querySelector(
+                'input[name="language_input"]:checked'
+              ).value,
+            };
+            lang = state.language;
             updateUI();
           })
       );
