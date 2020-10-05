@@ -228,6 +228,7 @@
   <body class="dark-background">
     <div
       id="editbutton"
+      class="hiddenbutton"
       onmouseover="this.style.color='white';"
       onmouseout="this.style.color='black';"
     >
@@ -353,25 +354,38 @@
       // redraw with start-state
       updateUI();
 
-      // event handlers
+      // event handlers helpers
+      const openForm = (form) => {
+        // needs to happen on each form close
+        form.style.display = '';
+        document
+          .querySelectorAll('.hiddenbutton')
+          .forEach((btn) => (btn.style.display = 'none'));
+        form.classList.add('visibleform');
+      };
+      const closeForm = (form) => {
+        form.style.display = 'none';
+        document
+          .querySelectorAll('.hiddenbutton')
+          .forEach((btn) => (btn.style.display = ''));
+        form.classList.remove('visibleform');
+      };
 
       // show edit form
-      document.getElementById('editbutton').onclick = () => {
+      document.getElementById('editbutton').onclick = (event) => {
         const editForm = document.getElementById('editform');
-        editForm.style.display = '';
-        document.getElementById('editbutton').style.display = 'none';
-        editForm.classList.add('editform');
+        openForm(editForm);
+
         updateForm();
         document.getElementById('title_input').focus();
         document.getElementById('title_input').select();
+        event.stopPropagation();
       };
 
       // hide it again
       document.getElementById('closeFormButton').onclick = () => {
         const editForm = document.getElementById('editform');
-        editForm.style.display = 'none';
-        document.getElementById('editbutton').style.display = '';
-        editForm.classList.remove('editform');
+        closeForm(editForm);
         localStorage.setItem('wachtscherm_state', JSON.stringify(state));
       };
       // title - lecturer
@@ -462,6 +476,17 @@
             updateUI();
           })
       );
+
+      // event handlers
+      window.onclick = (event) => {
+        // check if there are visible form(s), and if the click happens outside of them (if so, close the form)
+        const visibleForms = document.querySelectorAll('.visibleform');
+        visibleForms.forEach((form) => {
+          if (!form.contains(event.target)) {
+            closeForm(form);
+          }
+        });
+      };
     </script>
   </body>
 </html>

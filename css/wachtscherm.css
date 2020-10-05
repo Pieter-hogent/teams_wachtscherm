@@ -86,13 +86,10 @@ li {
   font-size: 22px;
 }
 
-#editbutton {
-  position: absolute;
-  top: 10px;
-  left: 10px;
+.hiddenbutton {
   color: black;
 }
-.editform {
+.visibleform {
   background-color: lightgray;
   color: black;
   font-family: 'Open Sans', sans-serif;
